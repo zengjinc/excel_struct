@@ -20,7 +20,7 @@ def excel_to_struct(excel_file, struct_file):
     for sheet_name in workbook.sheetnames:
         sheet = workbook[sheet_name]
         content += f"# 表格: {sheet_name}\n"
-        content += f"sheet = builder.add_sheet(\"{sheet_name}\")\n"
+        content += f"sheet = builder.add_sheet(\"{sheet_name}\")\n\n"
 
         # 解析工作表内容
         erl_name = None
@@ -45,7 +45,7 @@ def excel_to_struct(excel_file, struct_file):
                 content += f"sheet.set_erl_name(\"{erl_name}\")\n"
             elif config_type == 'LUA_NAME' and config_value:
                 lua_name = config_value
-                content += f"sheet.set_lua_name(\"{lua_name}\")\n"
+                content += f"\nsheet.set_lua_name(\"{lua_name}\")\n"
             elif config_type == 'ERL_INCLUDE' and config_value:
                 includes.append(config_value)
                 content += f"sheet.add_include(\"{config_value}\")\n"
@@ -150,6 +150,7 @@ def excel_to_struct(excel_file, struct_file):
         if not field_names:
             # 判断field字段是否为空
             continue
+        content += "\n"
         for field_name, field_note in zip(field_names, field_notes):
                 content += f"sheet.add_field(\"{field_name}\", \"{field_note}\")\n"
 
