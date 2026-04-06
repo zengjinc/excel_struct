@@ -1,8 +1,9 @@
 import os
 import json
+from typing import List, Dict, Any, Optional
 from openpyxl import load_workbook
 
-def excel_to_struct(excel_file, struct_file):
+def excel_to_struct(excel_file: str, struct_file: str) -> None:
     """
     从Excel文件反向生成/更新struct/文件夹中的结构文件
 
@@ -175,7 +176,7 @@ def excel_to_struct(excel_file, struct_file):
 
     print(f"成功生成/更新结构文件: {struct_file}")
 
-def process_target_directory():
+def process_target_directory() -> None:
     """
     处理target目录下的所有xlsx文件，生成/更新对应的struct文件
     """
@@ -203,13 +204,14 @@ def process_target_directory():
             print(f"处理文件: {excel_file}")
             excel_to_struct(excel_file, struct_file)
 
-def process_single_excel(excel_name):
+def process_single_excel(excel_name: str) -> None:
     """
     处理单个Excel文件，生成/更新对应的struct文件
 
     Args:
         excel_name: Excel文件名（不含 .xlsx 后缀）
     """
+
     import config as config_module
 
     # 处理target文件夹路径（支持相对路径和绝对路径）

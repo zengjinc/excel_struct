@@ -1,14 +1,19 @@
 import os
 import sys
 import argparse
+from typing import List, Tuple, Any
 from config_parser import get_all_configs
 from struct_to_excel import generate_excel
 import config as config_module
 from excel_to_struct import process_single_excel, process_target_directory
 
-def main():
+def main() -> None:
     """
     主函数
+
+    处理命令行参数并执行相应的操作：
+    1. 生成 Excel 配置文件
+    2. 从 Excel 文件反向生成/更新 struct 结构文件
     """
     # 解析命令行参数
     parser = argparse.ArgumentParser(description='Excel 配置工具')
