@@ -4,16 +4,16 @@ from openpyxl import load_workbook
 
 def excel_to_struct(excel_file, struct_file):
     """
-    从Excel文件反向生成/更新struct/文件夹中的描述文件
+    从Excel文件反向生成/更新struct/文件夹中的结构文件
 
     Args:
         excel_file: Excel文件路径
-        struct_file: 生成的描述文件路径
+        struct_file: 生成的结构文件路径
     """
     # 加载Excel文件
     workbook = load_workbook(excel_file)
 
-    # 生成描述文件内容
+    # 生成结构文件内容
     content = "from config_builder import ConfigBuilder, SheetBuilder\n\nbuilder = ConfigBuilder()\n\n"
 
     # 处理每个工作表
@@ -173,7 +173,7 @@ def excel_to_struct(excel_file, struct_file):
     with open(struct_file, 'w', encoding='utf-8') as f:
         f.write(content)
 
-    print(f"成功生成/更新描述文件: {struct_file}")
+    print(f"成功生成/更新结构文件: {struct_file}")
 
 def process_target_directory():
     """

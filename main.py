@@ -14,7 +14,7 @@ def main():
     parser = argparse.ArgumentParser(description='Excel 配置工具')
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument('-gen_excel', metavar='CONFIG_NAME', help='生成 Excel 配置文件，配置文件名（不含 .py 后缀），支持填 all')
-    group.add_argument('-gen_struct', metavar='EXCEL_NAME', help='从 Excel 文件反向生成/更新 struct 描述文件，Excel 文件名（不含 .xlsx 后缀）')
+    group.add_argument('-gen_struct', metavar='EXCEL_NAME', help='从 Excel 文件反向生成/更新 struct 结构文件，Excel 文件名（不含 .xlsx 后缀）')
     args = parser.parse_args()
 
     # 处理struct文件夹路径（支持相对路径和绝对路径）
@@ -38,12 +38,12 @@ def main():
         sys.exit(1)
 
     if args.gen_struct:
-        # 从 Excel 文件反向生成/更新 struct 描述文件
+        # 从 Excel 文件反向生成/更新 struct 结构文件
         if args.gen_struct == 'all':
             process_target_directory()
         else:
             process_single_excel(args.gen_struct)
-        print("\nStruct 描述文件生成/更新完成！")
+        print("\nStruct 结构文件生成/更新完成！")
         return
 
     # 获取所有配置文件

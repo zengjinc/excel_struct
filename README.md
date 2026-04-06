@@ -1,11 +1,11 @@
 # Excel 配置工具
 
-这是一个用于处理 Excel 配置文件的工具，支持从 struct 描述文件生成 Excel 配置文件，以及从 Excel 文件反向生成/更新 struct 描述文件。
+这是一个用于处理 Excel 配置文件的工具，支持从 struct 结构文件生成 Excel 配置文件，以及从 Excel 文件反向生成/更新 struct 结构文件。
 
 ## 功能特性
 
-- **从 struct 生成 Excel**：根据 struct 描述文件自动生成 Excel 配置文件
-- **从 Excel 生成 struct**：从 Excel 文件反向生成/更新 struct 描述文件
+- **从 struct 生成 Excel**：根据 struct 结构文件自动生成 Excel 配置文件
+- **从 Excel 生成 struct**：从 Excel 文件反向生成/更新 struct 结构文件
 - **支持批量处理**：可以一次性处理所有配置文件
 - **多语言支持**：支持生成 Erlang 和 Lua 相关的配置
 - **灵活配置**：通过配置文件自定义目标文件夹路径
@@ -14,8 +14,8 @@
 
 ```
 excel_struct/
-├── struct/          # struct 描述文件目录
-│   ├── base_test.py # 示例 struct 描述文件
+├── struct/          # struct 结构文件目录
+│   ├── base_test.py # 示例 struct 结构文件
 │   └── ...
 ├── target/          # 生成的 Excel 文件目录
 ├── config.py        # 配置文件
@@ -37,7 +37,7 @@ pip install openpyxl
 
 ## 使用方法
 
-### 1. 从 struct 描述文件生成 Excel 配置文件
+### 1. 从 struct 结构文件生成 Excel 配置文件
 
 ```bash
 # 生成指定的配置文件
@@ -47,7 +47,7 @@ python main.py -gen_excel CONFIG_NAME
 python main.py -gen_excel all
 ```
 
-### 2. 从 Excel 文件反向生成/更新 struct 描述文件
+### 2. 从 Excel 文件反向生成/更新 struct 结构文件
 
 ```bash
 # 生成指定的 struct 文件
@@ -57,9 +57,9 @@ python main.py -gen_struct EXCEL_NAME
 python main.py -gen_struct all
 ```
 
-## struct 描述文件格式
+## struct 结构文件格式
 
-struct 描述文件使用 Python 编写，使用 `ConfigBuilder` 和 `SheetBuilder` 构建配置。以下是一个示例：
+struct 结构文件使用 Python 编写，使用 `ConfigBuilder` 和 `SheetBuilder` 构建配置。以下是一个示例：
 
 ```python
 from config_builder import ConfigBuilder, SheetBuilder
@@ -106,7 +106,7 @@ TARGET_FOLDER = './target'
 
 ## 注意事项
 
-1. struct 描述文件必须放在 `struct` 目录下
+1. struct 结构文件必须放在 `struct` 目录下
 2. 生成的 Excel 文件会保存到 `target` 目录下
 3. 反向生成 struct 时，会覆盖原有文件，请确保备份重要文件
 4. 支持的字段类型包括普通字段和数组字段（使用 `-array` 后缀）
@@ -123,7 +123,7 @@ python main.py -gen_excel base_test
 ### 示例 2: 从 Excel 生成 struct
 
 ```bash
-# 从 base_test.xlsx 生成 struct 描述文件
+# 从 base_test.xlsx 生成 struct 结构文件
 python main.py -gen_struct base_test
 ```
 
