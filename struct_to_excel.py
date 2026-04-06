@@ -8,6 +8,11 @@ def generate_excel(config, target_path):
     :param config: 配置字典
     :param target_path: 目标文件路径
     """
+    # 检查结构是否有差异
+    if not _check_structure_diff(config, target_path):
+        print(f"Excel 文件结构无差异，跳过生成: {target_path}")
+        return
+
     # 检查目标文件是否存在
     if os.path.exists(target_path):
         # 读取现有文件
@@ -252,6 +257,186 @@ def _write_sheet_config(ws, sheet_data):
                 cell.alignment = Alignment(horizontal='center', vertical='center')
             else:
                 cell.alignment = Alignment(horizontal='left', vertical='center')
+
+def _extract_excel_structure(wb):
+    """
+    从 Excel 文件中提取结构信息
+    :param wb: Workbook 对象
+    :return: 结构信息字典，格式与配置字典相同
+    """
+    import json
+
+    structure = {'sheets': []}
+
+    for sheet_name in wb.sheetnames:
+        ws = wb[sheet_name]
+        sheet_data = {
+            'name': sheet_name,
+            'config': {
+                'ERL_NAME': '',
+                'ERL_INCLUDE': [],
+                'ERL_FFUN': [],
+                'LUA_NAME': '',
+                'LUA_FUN': [],
+                'fields': []
+            }
+        }
+
+        # 提取 ERL_NAME, ERL_INCLUDE, ERL_FUN, LUA_NAME, LUA_FUN
+        current_row = 1
+        while current_row <= ws.max_row:
+            cell_value = ws.cell(row=current_row, column=1).value
+
+            if cell_value == 'ERL_NAME':
+                sheet_data['config']['ERL_NAME'] = ws.cell(row=current_row, column=2).value or ''
+            elif cell_value == 'ERL_INCLUDE':
+                # 提取所有 ERL_INCLUDE
+                column = 2
+                while column <= ws.max_column:
+                    include = ws.cell(row=current_row, column=column).value
+                    if include:
+                        sheet_data['config']['ERL_INCLUDE'].append(include)
+                    column += 1
+            elif cell_value == 'ERL_FUN':
+                fun_name = ws.cell(row=current_row, column=2).value or ''
+                fun_data = {'name': fun_name, 'params': {'key': [], 'value': []}}
+
+                # 提取 params
+                params_str = ws.cell(row=current_row, column=3).value
+                if params_str:
+                    try:
+                        # 修复 JSON 字符串中的单引号问题
+                        params_str = params_str.replace("'", '"')
+                        # 处理可能的格式问题
+                        params_str = params_str.replace('True', 'true').replace('False', 'false').replace('None', 'null')
+                        params = json.loads(params_str)
+                        fun_data['params']['key'] = params.get('key', [])
+                        fun_data['params']['value'] = params.get('value', [])
+                    except Exception as e:
+                        print(f"解析 ERL_FUN params 失败: {e}")
+
+                # 提取 return
+                return_str = ws.cell(row=current_row, column=4).value
+                if return_str:
+                    try:
+                        return_str = return_str.replace("'", '"')
+                        return_data = json.loads(return_str)
+                        fun_data['return'] = return_data.get('return', '')
+                    except Exception as e:
+                        print(f"解析 ERL_FUN return 失败: {e}")
+
+                # 提取 when
+                when_str = ws.cell(row=current_row, column=5).value
+                if when_str:
+                    try:
+                        when_str = when_str.replace("'", '"')
+                        when_data = json.loads(when_str)
+                        fun_data['when'] = when_data.get('when', '')
+                    except Exception as e:
+                        print(f"解析 ERL_FUN when 失败: {e}")
+
+                # 提取 note
+                note_str = ws.cell(row=current_row, column=6).value
+                if note_str:
+                    # 提取 note 字段，处理 JSON 格式
+                    try:
+                        note_str = note_str.replace("'", '"')
+                        note_data = json.loads(note_str)
+                        fun_data['note'] = note_data.get('note', '')
+                    except Exception:
+                        # 如果不是 JSON 格式，直接使用字符串
+                        fun_data['note'] = note_str
+
+                # 提取 fun_note
+                fun_note_str = ws.cell(row=current_row, column=7).value
+                if fun_note_str:
+                    try:
+                        fun_note_str = fun_note_str.replace("'", '"')
+                        fun_note_data = json.loads(fun_note_str)
+                        fun_data['fun_note'] = fun_note_data.get('fun_note', [])
+                    except Exception as e:
+                        print(f"解析 ERL_FUN fun_note 失败: {e}")
+
+                sheet_data['config']['ERL_FFUN'].append(fun_data)
+            elif cell_value == 'LUA_NAME':
+                sheet_data['config']['LUA_NAME'] = ws.cell(row=current_row, column=2).value or ''
+            elif cell_value == 'LUA_FUN':
+                fun_name = ws.cell(row=current_row, column=2).value or ''
+                fun_data = {'name': fun_name, 'params': {'key': [], 'value': []}}
+
+                # 提取 params
+                params_str = ws.cell(row=current_row, column=3).value
+                if params_str:
+                    try:
+                        params_str = params_str.replace("'", '"')
+                        params_str = params_str.replace('True', 'true').replace('False', 'false').replace('None', 'null')
+                        params = json.loads(params_str)
+                        fun_data['params']['key'] = params.get('key', [])
+                        fun_data['params']['value'] = params.get('value', [])
+                    except Exception as e:
+                        print(f"解析 LUA_FUN params 失败: {e}")
+
+                # 提取 return
+                return_str = ws.cell(row=current_row, column=4).value
+                if return_str:
+                    try:
+                        return_str = return_str.replace("'", '"')
+                        return_data = json.loads(return_str)
+                        fun_data['return'] = return_data.get('return', '')
+                    except Exception as e:
+                        print(f"解析 LUA_FUN return 失败: {e}")
+
+                sheet_data['config']['LUA_FUN'].append(fun_data)
+            elif cell_value == 'FIELD':
+                # 提取字段信息
+                field_row = current_row
+                note_row = field_row + 1
+
+                column = 2
+                while column <= ws.max_column:
+                    field_name = ws.cell(row=field_row, column=column).value
+                    field_note = ws.cell(row=note_row, column=column).value or ''
+
+                    if field_name:
+                        sheet_data['config']['fields'].append({
+                            'FIELD': field_name,
+                            'NOTE': field_note
+                        })
+
+                    column += 1
+
+                break
+
+            current_row += 1
+
+        structure['sheets'].append(sheet_data)
+
+    return structure
+
+
+def _check_structure_diff(config, target_path):
+    """
+    检查配置与现有文件的结构是否有差异
+    :param config: 配置字典
+    :param target_path: 目标文件路径
+    :return: 是否有差异，True 表示有差异，False 表示无差异
+    """
+    # 检查目标文件是否存在
+    if not os.path.exists(target_path):
+        return True
+
+    # 读取现有文件
+    try:
+        wb = openpyxl.load_workbook(target_path)
+    except Exception as e:
+        print(f"读取 Excel 文件失败: {e}")
+        return True
+
+    # 提取现有文件的结构
+    existing_structure = _extract_excel_structure(wb)
+
+    # 比较结构
+    return existing_structure != config
 
 def _write_value_data(ws, value_data):
     """

@@ -3,6 +3,57 @@ import json
 from typing import List, Dict, Any, Optional
 from openpyxl import load_workbook
 
+
+def _parse_struct_content(content: str) -> Dict[str, Any]:
+    """
+    解析结构文件内容，提取结构信息
+    :param content: 结构文件内容
+    :return: 结构信息字典
+    """
+    import ast
+
+    # 创建一个安全的命名空间
+    namespace = {}
+
+    # 执行结构文件内容，获取 config 对象
+    try:
+        exec(content, namespace)
+        config = namespace.get('config', {})
+    except Exception as e:
+        print(f"解析结构文件内容失败: {e}")
+        return {}
+
+    return config
+
+
+def _check_struct_diff(content: str, struct_file: str) -> bool:
+    """
+    检查生成的结构与现有结构文件的结构是否有差异
+    :param content: 生成的结构文件内容
+    :param struct_file: 结构文件路径
+    :return: 是否有差异，True 表示有差异，False 表示无差异
+    """
+    # 检查文件是否存在
+    if not os.path.exists(struct_file):
+        return True
+
+    # 读取现有文件内容
+    try:
+        with open(struct_file, 'r', encoding='utf-8') as f:
+            existing_content = f.read()
+    except Exception as e:
+        print(f"读取结构文件失败: {e}")
+        return True
+
+    # 解析现有结构
+    existing_config = _parse_struct_content(existing_content)
+
+    # 解析当前生成的结构
+    current_config = _parse_struct_content(content)
+
+    # 比较结构
+    return existing_config != current_config
+
 def excel_to_struct(excel_file: str, struct_file: str) -> None:
     """
     从Excel文件反向生成/更新struct/文件夹中的结构文件
@@ -168,6 +219,11 @@ def excel_to_struct(excel_file: str, struct_file: str) -> None:
 
     # 添加构建配置的代码
     content += "# 构建配置并赋值给全局变量\nconfig = builder.build()"
+
+    # 检查结构是否有差异
+    if not _check_struct_diff(content, struct_file):
+        print(f"结构文件结构无差异，跳过生成: {struct_file}")
+        return
 
     # 写入文件
     os.makedirs(os.path.dirname(struct_file), exist_ok=True)
