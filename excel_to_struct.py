@@ -179,7 +179,11 @@ def process_target_directory():
     else:
         target_dir = os.path.join(os.path.dirname(__file__), config_module.TARGET_FOLDER)
 
-    struct_dir = os.path.join(os.path.dirname(__file__), 'struct')
+    # 处理struct文件夹路径（支持相对路径和绝对路径）
+    if os.path.isabs(config_module.STRUCT_FOLDER):
+        struct_dir = config_module.STRUCT_FOLDER
+    else:
+        struct_dir = os.path.join(os.path.dirname(__file__), config_module.STRUCT_FOLDER)
 
     # 遍历target目录下的所有xlsx文件
     for filename in os.listdir(target_dir):
@@ -206,7 +210,11 @@ def process_single_excel(excel_name):
     else:
         target_dir = os.path.join(os.path.dirname(__file__), config_module.TARGET_FOLDER)
 
-    struct_dir = os.path.join(os.path.dirname(__file__), 'struct')
+    # 处理struct文件夹路径（支持相对路径和绝对路径）
+    if os.path.isabs(config_module.STRUCT_FOLDER):
+        struct_dir = config_module.STRUCT_FOLDER
+    else:
+        struct_dir = os.path.join(os.path.dirname(__file__), config_module.STRUCT_FOLDER)
 
     # 构建Excel文件路径和struct文件路径
     excel_file = os.path.join(target_dir, f"{excel_name}.xlsx")

@@ -17,8 +17,11 @@ def main():
     group.add_argument('-gen_struct', metavar='EXCEL_NAME', help='从 Excel 文件反向生成/更新 struct 描述文件，Excel 文件名（不含 .xlsx 后缀）')
     args = parser.parse_args()
 
-    # 定义目录路径
-    struct_dir = os.path.join(os.path.dirname(__file__), 'struct')
+    # 处理struct文件夹路径（支持相对路径和绝对路径）
+    if os.path.isabs(config_module.STRUCT_FOLDER):
+        struct_dir = config_module.STRUCT_FOLDER
+    else:
+        struct_dir = os.path.join(os.path.dirname(__file__), config_module.STRUCT_FOLDER)
     # 处理target文件夹路径（支持相对路径和绝对路径）
     if os.path.isabs(config_module.TARGET_FOLDER):
         target_dir = config_module.TARGET_FOLDER
