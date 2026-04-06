@@ -19,7 +19,7 @@ def excel_to_struct(excel_file, struct_file):
     # 处理每个工作表
     for sheet_name in workbook.sheetnames:
         sheet = workbook[sheet_name]
-        content += f"# 表格: {sheet_name}\n"
+        content += f"### 表格: {sheet_name}\n"
         content += f"sheet = builder.add_sheet(\"{sheet_name}\")\n\n"
 
         # 解析工作表内容
@@ -32,7 +32,35 @@ def excel_to_struct(excel_file, struct_file):
         field_names = []
         field_notes = []
 
-        # 遍历工作表的每一行
+        # 第一次遍历：提取字段信息
+        for row in sheet.iter_rows(min_row=1, values_only=True):
+            if not row[0]:
+                continue
+
+            config_type = row[0]
+            config_value = row[1]
+
+            if config_type == 'FIELD':
+                # 提取字段名，只处理非空单元格
+                for cell in row[1:]:
+                    if cell:
+                        field_names.append(cell)
+            elif config_type == 'NOTE':
+                # 提取字段注释
+                for cell in row[1:]:
+                    field_notes.append(cell if cell else "")
+
+        # 生成字段代码
+        # 确保field_notes的长度与field_names相同
+        while len(field_notes) < len(field_names):
+            field_notes.append("")
+        # 组合字段名和注释
+        if field_names:
+            content += "# ===field start===\n"
+            for field_name, field_note in zip(field_names, field_notes):
+                    content += f"sheet.add_field(\"{field_name}\", \"{field_note}\")\n"
+
+        # 第二次遍历：处理其他配置
         for row in sheet.iter_rows(min_row=1, values_only=True):
             if not row[0]:
                 continue
@@ -42,22 +70,15 @@ def excel_to_struct(excel_file, struct_file):
 
             if config_type == 'ERL_NAME' and config_value:
                 erl_name = config_value
-                content += f"sheet.set_erl_name(\"{erl_name}\")\n"
+                content += "\n# ===erlang start==="
+                content += f"\nsheet.set_erl_name(\"{erl_name}\")\n"
             elif config_type == 'LUA_NAME' and config_value:
                 lua_name = config_value
+                content += "\n# ===lua start==="
                 content += f"\nsheet.set_lua_name(\"{lua_name}\")\n"
             elif config_type == 'ERL_INCLUDE' and config_value:
                 includes.append(config_value)
                 content += f"sheet.add_include(\"{config_value}\")\n"
-            elif config_type == 'FIELD':
-                # 提取字段名，只处理非空单元格
-                for cell in row[1:]:
-                    if cell:
-                        field_names.append(cell)
-            elif config_type == 'NOTE':
-                # 提取字段注释
-                for cell in row[1:]:
-                    field_notes.append(cell if cell else "")
             elif config_type == 'ERL_FUN' and config_value:
                 # 解析ERL_FUN配置
                 key = []
@@ -97,7 +118,7 @@ def excel_to_struct(excel_file, struct_file):
                     note = row[5]
 
                 # 生成ERL函数代码
-                content += f"sheet.add_erl_function(\n"
+                content += f"\nsheet.add_erl_function(\n"
                 content += f"    name=\"{config_value}\",\n"
                 content += f"    key={key},\n"
                 content += f"    value={value},\n"
@@ -134,25 +155,13 @@ def excel_to_struct(excel_file, struct_file):
                         pass
 
                 # 生成LUA函数代码
-                content += f"sheet.add_lua_function(\n"
+                content += f"\nsheet.add_lua_function(\n"
                 content += f"    name=\"{config_value}\",\n"
                 content += f"    key={key},\n"
                 content += f"    value={value},\n"
                 if return_type:
                     content += f"    return_type=\"{return_type}\",\n"
                 content += f")\n"
-
-        # 生成字段代码
-        # 确保field_notes的长度与field_names相同
-        while len(field_notes) < len(field_names):
-            field_notes.append("")
-        # 组合字段名和注释
-        if not field_names:
-            # 判断field字段是否为空
-            continue
-        content += "\n"
-        for field_name, field_note in zip(field_names, field_notes):
-                content += f"sheet.add_field(\"{field_name}\", \"{field_note}\")\n"
 
         content += "\n"
 
