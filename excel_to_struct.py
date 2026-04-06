@@ -50,12 +50,10 @@ def excel_to_struct(excel_file, struct_file):
                 includes.append(config_value)
                 content += f"sheet.add_include(\"{config_value}\")\n"
             elif config_type == 'FIELD':
-                # 提取字段名
-                for i, cell in enumerate(row[1:], 1):
+                # 提取字段名，只处理非空单元格
+                for cell in row[1:]:
                     if cell:
                         field_names.append(cell)
-                    else:
-                        field_names.append(f"field_{i}")
             elif config_type == 'NOTE':
                 # 提取字段注释
                 for cell in row[1:]:
