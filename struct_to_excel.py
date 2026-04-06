@@ -321,9 +321,12 @@ def _extract_excel_structure(wb):
                     try:
                         return_str = return_str.replace("'", '"')
                         return_data = json.loads(return_str)
-                        fun_data['return'] = return_data.get('return', '')
+                        fun_data['return'] = return_data.get('return', '') or ''
                     except Exception as e:
                         print(f"解析 ERL_FUN return 失败: {e}")
+                        fun_data['return'] = ''
+                else:
+                    fun_data['return'] = ''
 
                 # 提取 when
                 when_str = ws.cell(row=current_row, column=5).value
@@ -331,9 +334,12 @@ def _extract_excel_structure(wb):
                     try:
                         when_str = when_str.replace("'", '"')
                         when_data = json.loads(when_str)
-                        fun_data['when'] = when_data.get('when', '')
+                        fun_data['when'] = when_data.get('when', '') or ''
                     except Exception as e:
                         print(f"解析 ERL_FUN when 失败: {e}")
+                        fun_data['when'] = ''
+                else:
+                    fun_data['when'] = ''
 
                 # 提取 note
                 note_str = ws.cell(row=current_row, column=6).value
@@ -342,10 +348,12 @@ def _extract_excel_structure(wb):
                     try:
                         note_str = note_str.replace("'", '"')
                         note_data = json.loads(note_str)
-                        fun_data['note'] = note_data.get('note', '')
+                        fun_data['note'] = note_data.get('note', '') or ''
                     except Exception:
                         # 如果不是 JSON 格式，直接使用字符串
                         fun_data['note'] = note_str
+                else:
+                    fun_data['note'] = ''
 
                 # 提取 fun_note
                 fun_note_str = ws.cell(row=current_row, column=7).value
@@ -356,6 +364,12 @@ def _extract_excel_structure(wb):
                         fun_data['fun_note'] = fun_note_data.get('fun_note', [])
                     except Exception as e:
                         print(f"解析 ERL_FUN fun_note 失败: {e}")
+
+                # 自动生成 fun_note 字段，与 ConfigBuilder 保持一致
+                if 'fun_note' not in fun_data:
+                    key = fun_data.get('params', {}).get('key', [])
+                    value = fun_data.get('params', {}).get('value', [])
+                    fun_data['fun_note'] = key + [v for v in value if v not in key]
 
                 sheet_data['config']['ERL_FFUN'].append(fun_data)
             elif cell_value == 'LUA_NAME':
@@ -382,9 +396,12 @@ def _extract_excel_structure(wb):
                     try:
                         return_str = return_str.replace("'", '"')
                         return_data = json.loads(return_str)
-                        fun_data['return'] = return_data.get('return', '')
+                        fun_data['return'] = return_data.get('return', '') or ''
                     except Exception as e:
                         print(f"解析 LUA_FUN return 失败: {e}")
+                        fun_data['return'] = ''
+                else:
+                    fun_data['return'] = ''
 
                 sheet_data['config']['LUA_FUN'].append(fun_data)
             elif cell_value == 'FIELD':
@@ -435,8 +452,12 @@ def _check_structure_diff(config, target_path):
     # 提取现有文件的结构
     existing_structure = _extract_excel_structure(wb)
 
+    # 只比较 sheets 部分，忽略 filename 字段
+    config_sheets = config.get('sheets', [])
+    existing_sheets = existing_structure.get('sheets', [])
+
     # 比较结构
-    return existing_structure != config
+    return existing_sheets != config_sheets
 
 def _write_value_data(ws, value_data):
     """
